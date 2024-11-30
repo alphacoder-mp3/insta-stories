@@ -2,6 +2,7 @@ export interface Story {
   id: string;
   imageUrl: string;
   timestamp: string;
+  viewed: boolean;
 }
 
 export interface UserStories {
@@ -16,4 +17,5 @@ export interface StoriesState {
   currentUserIndex: number;
   currentStoryIndex: number;
   isPlaying: boolean;
+  swipeDirection: 'left' | 'right' | null;
 }

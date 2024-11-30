@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSwipe } from '../hooks/use-swipe';
+import { useStoryState } from '../hooks/use-story-state';
+import { StoryImage } from './story-image';
 import type { UserStories } from '../types/story';
 
 interface StoryViewerProps {
@@ -13,57 +15,46 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   initialUserIndex,
   onClose,
 }) => {
-  const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const {
+    state,
+    progress,
+    setProgress,
+    isAnimating,
+    setIsAnimating,
+    currentUser,
+    currentStory,
+    nextUser,
+    prevUser,
+    goToNextStory,
+    goToPreviousStory,
+    togglePlayback,
+    handleClose,
+  } = useStoryState(userStories, initialUserIndex, onClose);
 
-  const currentUser = userStories[currentUserIndex];
-  const currentStory = currentUser.stories[currentStoryIndex];
-
-  const goToNextStory = () => {
-    if (currentStoryIndex < currentUser.stories.length - 1) {
-      setCurrentStoryIndex(prev => prev + 1);
-      setProgress(0);
-    } else if (currentUserIndex < userStories.length - 1) {
-      setCurrentUserIndex(prev => prev + 1);
-      setCurrentStoryIndex(0);
-      setProgress(0);
-    } else {
-      onClose();
-    }
-  };
-
-  const goToPreviousStory = () => {
-    if (currentStoryIndex > 0) {
-      setCurrentStoryIndex(prev => prev - 1);
-      setProgress(0);
-    } else if (currentUserIndex > 0) {
-      setCurrentUserIndex(prev => prev - 1);
-      setCurrentStoryIndex(
-        userStories[currentUserIndex - 1].stories.length - 1
-      );
-      setProgress(0);
-    }
-  };
+  const [nextImageLoaded, setNextImageLoaded] = useState(false);
 
   const { handleTouchStart, handleTouchMove, handleTouchEnd } = useSwipe({
     onSwipeLeft: () => {
-      if (currentUserIndex < userStories.length - 1) {
-        setCurrentUserIndex(prev => prev + 1);
-        setCurrentStoryIndex(0);
-        setProgress(0);
+      if (
+        state.currentUserIndex < userStories.length - 1 &&
+        !isAnimating &&
+        nextImageLoaded
+      ) {
+        setIsAnimating(true);
+        goToNextStory();
       }
     },
     onSwipeRight: () => {
-      if (currentUserIndex > 0) {
-        setCurrentUserIndex(prev => prev - 1);
-        setCurrentStoryIndex(0);
-        setProgress(0);
+      if (state.currentUserIndex > 0 && !isAnimating) {
+        setIsAnimating(true);
+        goToPreviousStory();
       }
     },
   });
 
   useEffect(() => {
+    if (!state.isPlaying) return;
+
     const timer = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
@@ -75,10 +66,17 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     }, 100);
 
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserIndex, currentStoryIndex]);
+  }, [
+    state.currentUserIndex,
+    state.currentStoryIndex,
+    state.isPlaying,
+    goToNextStory,
+    setProgress,
+  ]);
 
   const handleTouchArea = (e: React.MouseEvent) => {
+    if (isAnimating) return;
+
     const { clientX } = e;
     const { innerWidth } = window;
 
@@ -86,17 +84,56 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       goToPreviousStory();
     } else if (clientX > (innerWidth * 2) / 3) {
       goToNextStory();
+    } else {
+      togglePlayback();
     }
   };
 
   return (
     <div
-      className="fixed inset-0 bg-black z-50"
+      className="fixed inset-0 bg-black z-50 overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="relative h-full">
+      <div className="absolute inset-0">
+        {/* Current Story */}
+        <StoryImage
+          imageUrl={currentStory.imageUrl}
+          username={currentUser.username}
+          className={`transform transition-transform duration-300 ease-out ${
+            state.swipeDirection === 'left'
+              ? '-translate-x-full'
+              : state.swipeDirection === 'right'
+              ? 'translate-x-full'
+              : ''
+          }`}
+        />
+
+        {/* Next Story (Preloaded) */}
+        {nextUser && (
+          <StoryImage
+            imageUrl={nextUser.stories[0].imageUrl}
+            username={nextUser.username}
+            className={`transform translate-x-full transition-transform duration-300 ease-out ${
+              state.swipeDirection === 'left' ? 'translate-x-0' : ''
+            }`}
+            onLoad={() => setNextImageLoaded(true)}
+          />
+        )}
+
+        {/* Previous Story (Preloaded) */}
+        {prevUser && (
+          <StoryImage
+            imageUrl={prevUser.stories[prevUser.stories.length - 1].imageUrl}
+            username={prevUser.username}
+            className={`transform -translate-x-full transition-transform duration-300 ease-out ${
+              state.swipeDirection === 'right' ? 'translate-x-0' : ''
+            }`}
+          />
+        )}
+
+        {/* UI Overlay */}
         <div className="absolute top-0 w-full z-10 p-2 space-y-2">
           <div className="flex space-x-1">
             {currentUser.stories.map((_, idx) => (
@@ -105,9 +142,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                   className="h-full bg-white transition-all duration-100"
                   style={{
                     width: `${
-                      idx === currentStoryIndex
+                      idx === state.currentStoryIndex
                         ? progress
-                        : idx < currentStoryIndex
+                        : idx < state.currentStoryIndex
                         ? 100
                         : 0
                     }%`,
@@ -126,18 +163,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             <span className="text-gray-400 text-sm ml-2">
               {currentStory.timestamp}
             </span>
-            <button onClick={onClose} className="ml-auto text-white p-2">
+            <button onClick={handleClose} className="ml-auto text-white p-2">
               ✕
             </button>
           </div>
         </div>
 
-        <img
-          src={currentStory.imageUrl}
-          alt={`${currentUser.username}'s story`}
-          className="w-full h-full object-cover"
-        />
-
+        {/* Touch Areas */}
         <div className="absolute inset-0 flex" onClick={handleTouchArea}>
           <div className="w-1/3" />
           <div className="w-1/3" />

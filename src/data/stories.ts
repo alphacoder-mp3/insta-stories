@@ -37,12 +37,14 @@ export const userStories = [
         imageUrl:
           'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
         timestamp: '2h ago',
+        viewed: false,
       },
       {
         id: '1b',
         imageUrl:
           'https://images.unsplash.com/photo-1472214103451-9374bd1c798e',
         timestamp: '2h ago',
+        viewed: false,
       },
     ],
   },
@@ -57,18 +59,21 @@ export const userStories = [
         imageUrl:
           'https://images.unsplash.com/photo-1469474968028-56623f02e42e',
         timestamp: '3h ago',
+        viewed: false,
       },
       {
         id: '2b',
         imageUrl:
           'https://images.unsplash.com/photo-1501785888041-af3ef285b470',
         timestamp: '3h ago',
+        viewed: false,
       },
       {
         id: '2c',
         imageUrl:
           'https://images.unsplash.com/photo-1416339442236-8ceb164046f8',
         timestamp: '3h ago',
+        viewed: false,
       },
     ],
   },
@@ -83,6 +88,7 @@ export const userStories = [
         imageUrl:
           'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d',
         timestamp: '4h ago',
+        viewed: false,
       },
     ],
   },

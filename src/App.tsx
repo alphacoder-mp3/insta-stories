@@ -13,9 +13,6 @@ function App() {
   };
 
   const handleClose = () => {
-    if (selectedUserIndex !== null) {
-      userStories[selectedUserIndex].viewed = true;
-    }
     setSelectedUserIndex(null);
   };
 
