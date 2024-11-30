@@ -1,35 +1,33 @@
 import { useState } from 'react';
 import { StoriesList } from './components/story-list';
 import { StoryViewer } from './components/story-viewer';
-import { stories } from './data/stories';
+import { userStories } from './data/stories';
 
 function App() {
-  const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(
+  const [selectedUserIndex, setSelectedUserIndex] = useState<number | null>(
     null
   );
 
   const handleStoryClick = (index: number) => {
-    setSelectedStoryIndex(index);
+    setSelectedUserIndex(index);
   };
 
   const handleClose = () => {
-    setSelectedStoryIndex(null);
+    if (selectedUserIndex !== null) {
+      userStories[selectedUserIndex].viewed = true;
+    }
+    setSelectedUserIndex(null);
   };
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="hidden sm:flex text-white min-h-screen items-center justify-center font-bold">
-        {' '}
-        Only available on mobile devices.
-      </div>
-      <StoriesList stories={stories} onStoryClick={handleStoryClick} />
+      <StoriesList userStories={userStories} onStoryClick={handleStoryClick} />
 
-      {selectedStoryIndex !== null && (
+      {selectedUserIndex !== null && (
         <StoryViewer
-          stories={stories}
-          initialIndex={selectedStoryIndex}
+          userStories={userStories}
+          initialUserIndex={selectedUserIndex}
           onClose={handleClose}
-          onStoryChange={setSelectedStoryIndex}
         />
       )}
     </div>

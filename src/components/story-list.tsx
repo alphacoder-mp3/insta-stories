@@ -1,23 +1,23 @@
 import React from 'react';
 import { StoryCircle } from './story-circle';
-import type { Story } from '../types/story';
+import type { UserStories } from '../types/story';
 
 interface StoriesListProps {
-  stories: Story[];
+  userStories: UserStories[];
   onStoryClick: (index: number) => void;
 }
 
 export const StoriesList: React.FC<StoriesListProps> = ({
-  stories,
+  userStories,
   onStoryClick,
 }) => {
   return (
-    <div className="overflow-x-auto sm:hidden">
+    <div className="overflow-x-auto">
       <div className="flex space-x-4 p-4">
-        {stories.map((story, index) => (
+        {userStories.map((userStory, index) => (
           <StoryCircle
-            key={story.id}
-            story={story}
+            key={userStory.userId}
+            userStory={userStory}
             onClick={() => onStoryClick(index)}
           />
         ))}
