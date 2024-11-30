@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Added few hooks which are not needed
+use-animation.ts
+use-story-gestures.ts
+use-story-navigation.ts
