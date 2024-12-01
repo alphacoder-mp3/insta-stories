@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, memo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react';
 import { useSwipe } from '../hooks/use-swipe';
 import type { UserStories } from '../types/story';
 
@@ -13,6 +13,40 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
     const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
     const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
     const [progress, setProgress] = useState(0);
+    const [preloadedImages, setPreloadedImages] = useState<{
+      [key: string]: string;
+    }>({});
+    const [transitionDirection, setTransitionDirection] = useState<
+      'left' | 'right' | null
+    >(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Preload images for smooth experience
+    const preloadImages = useCallback(() => {
+      const imagesToPreload: { [key: string]: string } = {};
+
+      userStories.forEach((user, userIndex) => {
+        user.stories.forEach((story, storyIndex) => {
+          const key = `${userIndex}-${storyIndex}`;
+          imagesToPreload[key] = story.imageUrl;
+        });
+      });
+
+      Object.entries(imagesToPreload).forEach(([key, url]) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          setPreloadedImages(prev => ({
+            ...prev,
+            [key]: url,
+          }));
+        };
+      });
+    }, [userStories]);
+
+    useEffect(() => {
+      preloadImages();
+    }, [preloadImages]);
 
     const currentUser = useMemo(
       () => userStories[currentUserIndex],
@@ -23,6 +57,38 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
       [currentUser, currentStoryIndex]
     );
 
+    // Transition helpers
+    const applyTransition = useCallback((direction: 'left' | 'right') => {
+      setTransitionDirection(direction);
+
+      if (containerRef.current) {
+        containerRef.current.classList.add(
+          'transition-transform',
+          'duration-500',
+          'ease-in-out'
+        );
+
+        if (direction === 'left') {
+          containerRef.current.style.transform = 'rotateY(-90deg)';
+        } else {
+          containerRef.current.style.transform = 'rotateY(90deg)';
+        }
+      }
+
+      // Reset transition after animation
+      setTimeout(() => {
+        if (containerRef.current) {
+          containerRef.current.classList.remove(
+            'transition-transform',
+            'duration-500',
+            'ease-in-out'
+          );
+          containerRef.current.style.transform = 'rotateY(0deg)';
+        }
+        setTransitionDirection(null);
+      }, 500);
+    }, []);
+
     const markCurrentStoryAsViewed = useCallback(() => {
       currentUser.stories[currentStoryIndex].viewed = true;
       if (currentUser.stories.every(story => story.viewed)) {
@@ -32,7 +98,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
 
     const handleClose = useCallback(() => {
       markCurrentStoryAsViewed();
-      // If we're on the last story, mark all previous stories as viewed too
       if (currentStoryIndex === currentUser.stories.length - 1) {
         currentUser.stories.forEach(story => {
           story.viewed = true;
@@ -49,6 +114,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
         setCurrentStoryIndex(prev => prev + 1);
         setProgress(0);
       } else if (currentUserIndex < userStories.length - 1) {
+        applyTransition('left');
         currentUser.viewed = true;
         setCurrentUserIndex(prev => prev + 1);
         setCurrentStoryIndex(0);
@@ -63,6 +129,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
       currentUserIndex,
       userStories.length,
       handleClose,
+      applyTransition,
     ]);
 
     const goToPreviousStory = useCallback(() => {
@@ -70,18 +137,20 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
         setCurrentStoryIndex(prev => prev - 1);
         setProgress(0);
       } else if (currentUserIndex > 0) {
+        applyTransition('right');
         setCurrentUserIndex(prev => prev - 1);
         setCurrentStoryIndex(
           userStories[currentUserIndex - 1].stories.length - 1
         );
         setProgress(0);
       }
-    }, [currentStoryIndex, currentUserIndex, userStories]);
+    }, [currentStoryIndex, currentUserIndex, userStories, applyTransition]);
 
     const { handleTouchStart, handleTouchMove, handleTouchEnd } = useSwipe({
       onSwipeLeft: useCallback(() => {
         if (currentUserIndex < userStories.length - 1) {
           markCurrentStoryAsViewed();
+          applyTransition('left');
           currentUser.viewed = true;
           setCurrentUserIndex(prev => prev + 1);
           setCurrentStoryIndex(0);
@@ -92,14 +161,16 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
         userStories.length,
         markCurrentStoryAsViewed,
         currentUser,
+        applyTransition,
       ]),
       onSwipeRight: useCallback(() => {
         if (currentUserIndex > 0) {
+          applyTransition('right');
           setCurrentUserIndex(prev => prev - 1);
           setCurrentStoryIndex(0);
           setProgress(0);
         }
-      }, [currentUserIndex]),
+      }, [currentUserIndex, applyTransition]),
     });
 
     useEffect(() => {
@@ -130,6 +201,12 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
       [goToPreviousStory, goToNextStory]
     );
 
+    // Get preloaded image or fallback to original
+    const getCurrentImage = useCallback(() => {
+      const key = `${currentUserIndex}-${currentStoryIndex}`;
+      return preloadedImages[key] || currentStory.imageUrl;
+    }, [currentUserIndex, currentStoryIndex, preloadedImages, currentStory]);
+
     return (
       <div
         className="fixed inset-0 bg-black z-50"
@@ -137,7 +214,16 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="relative h-full">
+        <div
+          className={`relative h-full ${
+            transitionDirection === 'left'
+              ? 'transition-transform translate-x-[-100%]'
+              : transitionDirection === 'right'
+              ? 'transition-transform translate-x-[100%]'
+              : ''
+          }`}
+          ref={containerRef}
+        >
           {/* Progress Indicators */}
           <div className="absolute top-0 w-full z-10 p-2 space-y-2">
             <div className="flex space-x-1">
@@ -178,9 +264,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = memo(
 
           {/* Story Image */}
           <img
-            src={currentStory.imageUrl}
+            key={getCurrentImage()}
+            src={getCurrentImage()}
             alt={`${currentUser.username}'s story`}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
 
           {/* Touch Navigation Areas */}
