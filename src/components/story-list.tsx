@@ -12,7 +12,7 @@ export const StoriesList: React.FC<StoriesListProps> = ({
   onStoryClick,
 }) => {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto sm:hidden">
       <div className="flex space-x-4 p-4">
         {userStories.map((userStory, index) => (
           <StoryCircle

@@ -18,6 +18,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black">
+      <div className="hidden sm:flex text-white min-h-screen items-center justify-center font-bold">
+        {' '}
+        Only available on mobile devices.
+      </div>
       <StoriesList userStories={userStories} onStoryClick={handleStoryClick} />
 
       {selectedUserIndex !== null && (
