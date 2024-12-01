@@ -1,50 +1,155 @@
-# React + TypeScript + Vite
+# Instagram Stories Clone
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A performant and mobile-optimized Instagram Stories clone built with React, TypeScript, and Tailwind CSS. View the live demo at [https://insta-stories-beta.vercel.app](https://insta-stories-beta.vercel.app)
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 📱 Mobile-first design
+- 🖼️ Smooth story transitions
+- 👆 Touch and swipe gestures
+- 🔄 Automatic story progression
+- 💾 Story view state management
+- 🖼️ Image preloading for performance
+- ⚡ Optimized rendering with React.memo
+- 🧪 Comprehensive test coverage
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- React 18
+- TypeScript
+- Tailwind CSS
+- Vite
+- Vitest for testing
 
-- Configure the top-level `parserOptions` property like this:
+## Getting Started
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Prerequisites
+
+- Node.js 18 or higher
+- npm 9 or higher
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/alphacoder-mp3/insta-stories.git
+cd insta-stories
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm install
 ```
+
+3. Start the development server:
+
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:5173](http://localhost:5173) in your mobile browser or use device emulation in desktop Chrome.
+
+### Running Tests
+
+```bash
+npm run test
+```
+
+## Design Choices & Optimizations
+
+### Performance Optimizations
+
+1. **Image Preloading**
+
+   - Implemented smart preloading of adjacent stories
+   - Uses a preloading queue to manage memory efficiently
+   - Prevents layout shifts during story transitions
+
+2. **Component Optimization**
+
+   - Used React.memo for StoryViewer component
+   - Implemented custom hooks for state management
+   - Separated concerns into focused components
+
+3. **Gesture Handling**
+
+   - Custom useSwipe hook for efficient touch handling
+   - Debounced gesture handlers for smooth interactions
+   - Optimized touch area calculations
+
+4. **State Management**
+   - Local state management with useState and useCallback
+   - Efficient story progression tracking
+   - Optimized view state updates
+
+### Architecture Decisions
+
+1. **Component Structure**
+
+   - StoryCircle: Individual story preview
+   - StoriesList: Horizontal scrollable list
+   - StoryViewer: Full-screen story view
+   - Clear separation of concerns
+
+2. **Custom Hooks**
+
+   - useSwipe: Touch gesture handling
+   - useStoryState: Story progression logic
+   - Promotes reusability and testing
+
+3. **Mobile-First Approach**
+   - Tailwind CSS for responsive design
+   - Touch-optimized interactions
+   - Mobile-specific UI patterns
+
+### Scalability Considerations
+
+1. **Code Organization**
+
+   - Modular file structure
+   - Clear separation of types
+   - Reusable components and hooks
+
+2. **Data Management**
+
+   - Extensible story data structure
+   - Easy to integrate with backend APIs
+   - Efficient state updates
+
+3. **Testing Strategy**
+   - Component unit tests
+   - Integration tests for user flows
+   - Mocked touch events
+
+## Project Structure
+
+```
+src/
+├── components/          # React components
+│   ├── story-circle.tsx
+│   ├── story-list.tsx
+│   └── story-viewer.tsx
+├── hooks/              # Custom React hooks
+│   ├── use-swipe.ts
+│   └── use-story-state.ts
+├── types/              # TypeScript types
+│   └── story.ts
+├── data/              # Mock data
+│   └── stories.ts
+└── tests/             # Test files
+    └── App.test.tsx
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
