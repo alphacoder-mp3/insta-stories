@@ -1,4 +1,3 @@
-import React from 'react';
 import type { UserStories } from '../types/story';
 
 interface StoryCircleProps {
@@ -10,8 +9,9 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
   userStory,
   onClick,
 }) => {
-  const gradientClass = userStory.viewed
-    ? 'bg-gray-300'
+  const allStoriesViewed = userStory.viewed;
+  const gradientClass = allStoriesViewed
+    ? 'bg-gray-500'
     : 'bg-gradient-to-tr from-yellow-400 to-fuchsia-600';
 
   return (

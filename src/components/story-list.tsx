@@ -1,4 +1,3 @@
-import React from 'react';
 import { StoryCircle } from './story-circle';
 import type { UserStories } from '../types/story';
 

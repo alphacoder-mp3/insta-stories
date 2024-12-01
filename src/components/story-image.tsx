@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface StoryImageProps {
   imageUrl: string;
@@ -13,7 +13,7 @@ export const StoryImage: React.FC<StoryImageProps> = ({
   className = '',
   onLoad,
 }) => {
-  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const img = new Image();

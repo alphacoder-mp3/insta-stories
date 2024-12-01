@@ -27,3 +27,4 @@ dist-ssr
 use-animation.ts
 use-story-gestures.ts
 use-story-navigation.ts
+cube-transition.tsx

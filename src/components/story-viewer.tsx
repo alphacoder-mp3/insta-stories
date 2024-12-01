@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSwipe } from '../hooks/use-swipe';
 import type { UserStories } from '../types/story';
 
@@ -20,16 +20,38 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const currentUser = userStories[currentUserIndex];
   const currentStory = currentUser.stories[currentStoryIndex];
 
+  const markCurrentStoryAsViewed = () => {
+    currentUser.stories[currentStoryIndex].viewed = true;
+    if (currentUser.stories.every(story => story.viewed)) {
+      currentUser.viewed = true;
+    }
+  };
+
+  const handleClose = () => {
+    markCurrentStoryAsViewed();
+    // If we're on the last story, mark all previous stories as viewed too
+    if (currentStoryIndex === currentUser.stories.length - 1) {
+      currentUser.stories.forEach(story => {
+        story.viewed = true;
+      });
+      currentUser.viewed = true;
+    }
+    onClose();
+  };
+
   const goToNextStory = () => {
+    markCurrentStoryAsViewed();
+
     if (currentStoryIndex < currentUser.stories.length - 1) {
       setCurrentStoryIndex(prev => prev + 1);
       setProgress(0);
     } else if (currentUserIndex < userStories.length - 1) {
+      currentUser.viewed = true;
       setCurrentUserIndex(prev => prev + 1);
       setCurrentStoryIndex(0);
       setProgress(0);
     } else {
-      onClose();
+      handleClose();
     }
   };
 
@@ -49,6 +71,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const { handleTouchStart, handleTouchMove, handleTouchEnd } = useSwipe({
     onSwipeLeft: () => {
       if (currentUserIndex < userStories.length - 1) {
+        markCurrentStoryAsViewed();
+        currentUser.viewed = true;
         setCurrentUserIndex(prev => prev + 1);
         setCurrentStoryIndex(0);
         setProgress(0);
@@ -126,7 +150,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             <span className="text-gray-400 text-sm ml-2">
               {currentStory.timestamp}
             </span>
-            <button onClick={onClose} className="ml-auto text-white p-2">
+            <button onClick={handleClose} className="ml-auto text-white p-2">
               ✕
             </button>
           </div>
